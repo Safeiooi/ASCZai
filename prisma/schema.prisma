@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String        @id @default(cuid())
+  email     String        @unique
+  name      String?
+  password  String
+  role      String        @default("user") // "admin" | "user"
+  status    String        @default("active") // "active" | "disabled"
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  sessions  ChatSession[]
+  quotas    QuotaUsage[]
+  feedbacks Feedback[]
+}
+
+model ChatSession {
+  id        String    @id @default(cuid())
+  userId    String
+  title     String    @default("แชทใหม่")
+  provider  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@index([userId, updatedAt])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  sessionId String
+  role      String // "user" | "assistant"
+  content   String
+  // JSON: Attachment[] [{name, path, mime, size}]
+  attachments String?
+  // JSON: Citation[]
+  citations   String?
+  // JSON: {provider, ocrEngine, ocrMs, searchMs, modelMs, warning, modelOnly}
+  meta        String?
+  createdAt DateTime @default(now())
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}
+
+model Document {
+  id         String   @id @default(cuid())
+  title      String
+  source     String? // ชื่อไฟล์ต้นทาง / origin
+  sourceType String   @default("upload") // upload | zip | manual
+  category   String   @default("general") // general | manual | product | cases | other
+  mimeType   String?
+  size       Int      @default(0)
+  // sha1 ของเนื้อหาที่ normalize แล้ว ใช้กันนำเข้าซ้ำ
+  contentHash String?
+  status     String   @default("published") // published | review | error
+  note       String? // หมายเหตุ เช่น ข้อมูลขาด / รอตรวจสอบ
+  version    Int      @default(1)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  chunks Chunk[]
+
+  @@index([status])
+  @@index([contentHash])
+}
+
+model Chunk {
+  id         String   @id @default(cuid())
+  documentId String
+  idx        Int // ลำดับชิ้นส่วนในเอกสาร
+  heading    String? // หัวข้อส่วนย่อย
+  content    String
+  createdAt  DateTime @default(now())
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId, idx])
+}
+
+model QuotaUsage {
+  id     String @id @default(cuid())
+  userId String
+  day    String // YYYY-MM-DD (Asia/Bangkok)
+  count  Int    @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, day])
+}
+
+model Feedback {
+  id         String   @id @default(cuid())
+  userId     String
+  messageId  String?
+  rating     String // "up" | "down"
+  comment    String?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+}
+
+model Setting {
+  key       String   @id
+  value     String // JSON
+  updatedAt DateTime @updatedAt
+}

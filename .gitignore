@@ -1,0 +1,56 @@
+# ===== Dependencies =====
+node_modules/
+.pnp
+.pnp.*
+
+# ===== Next.js =====
+/.next/
+/out/
+/build
+
+# ===== Environment (สำคัญ! ใช้ .env.example เป็นต้นแบบเท่านั้น) =====
+.env
+.env.*
+!.env.example
+
+# ===== Database (ข้อมูลผู้ใช้ + เอกสารองค์กร — ห้ามขึ้น GitHub) =====
+/db/
+*.db
+*.db-journal
+
+# ===== ไฟล์ที่ผู้ใช้อัปโหลด (เอกสารองค์กร รูปแชท ZIP ฯลฯ) =====
+/upload/
+/download/
+
+# ===== ไฟล์ภายในเครื่อง / sandbox =====
+/worklog.md
+/.zscripts/
+/.z-ai-config
+/.claude
+/tests/
+/Caddyfile
+/skills/
+*.pid
+
+# ===== Logs =====
+*.log
+dev.log
+dev.out.log
+server.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ===== TypeScript =====
+*.tsbuildinfo
+next-env.d.ts
+
+# ===== Misc =====
+.DS_Store
+*.pem
+/coverage
+.vercel
+local-*
+prompt
+test
